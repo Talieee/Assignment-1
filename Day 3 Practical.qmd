@@ -1,0 +1,60 @@
+---
+title: "Day 3 Practical"
+author: "Natalie Chidikwindi"
+format: html
+editor: visual
+---
+
+## Practical 3
+
+These are my answers for the last 2 questions
+
+## Question 4
+
+Plot the function $f(x) = \sin(x)$ for $x \in [-2, 2]$.
+
+### Answer:
+
+```{r}
+x <- seq(-2,2, 0.01)
+sin_fx <- sin(x)
+plot(x, sin_fx, "l",
+     main ="plot of sin_f(x) function")
+```
+
+## Question 5
+
+Generate 1000 values from a $t$-distribution with 1 degree of freedom.
+
+Construct a QQ-plot with 95% probability bands (envelopes) to check whether the above values come from a standard normal distribution. You can only use `rnorm()`, but not `qnorm`, `dnorm`, `pnorm`, or R's qqplot functions.
+
+### Answer:
+
+```{r}
+set.seed(142) # to ensure the t values are reproducable
+# sorted both the t values and normal values in order
+t_values <- sort(rt( n = 1000, df = 1))
+norm_values <- sort(rnorm(1000))
+
+# plotted the t values and a linear line 
+plot(norm_values, t_values,
+     xlab = "Standard Normal Quantiles",
+     ylab = "Sample Quantiles (t df=1)",
+     main = "QQ-plot of t-distributed values with a 95% confidence band",
+     ylim = c(-5, 5))
+abline(0, 1, col = "red") 
+
+# simulated 1000 samples of normal values with 1000 in each sample
+sim_num <- 1000
+sim_norm <- replicate(sim_num, sort(rnorm(1000)))
+# Calculated confidence bands at 95% significance based on normal values 
+lower <- apply(sim_norm, 1, quantile, probs = 0.025)
+upper <- apply(sim_norm, 1, quantile, probs = 0.975)
+# Plottes the lines above
+lines(norm_values, lower, col = "blue", lty = 2)
+lines(norm_values, upper, col = "blue", lty = 2)
+
+
+```
+
+The t-values are not within the confidence and therefore we can conclude that they are not normally distributed.

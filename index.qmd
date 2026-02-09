@@ -1,0 +1,16 @@
+---
+title: "Assignment Overview"
+---
+
+# Welcome
+
+This site contains my Quarto project for Assignment 1.\
+You’ll find:
+
+-    Day 1 Practical Answers
+
+-    Day 3 (questions 3 &4 ) Practical Answers
+
+-   Day 4 Practical Answers
+
+Use the navigation bar above to explore each section.

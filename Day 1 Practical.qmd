@@ -1,0 +1,88 @@
+---
+title: "Day 1 Practical"
+author: "Natalie Chidikwindi"
+format: html
+editor: visual
+---
+
+## Question 1
+
+Find all rows in “airquality” that have missing values. Note that the `airquality` dataset in `R` is always available
+
+### Answer:
+
+```{r}
+#loaded in dataset for airquality, it is already available in r
+data <- airquality
+head(data)
+```
+
+```{r}
+#the function runs through all the rows and columns to find the rows which contains a NA vaue and appends the row number to the matrix null_rows
+
+null_rows <- data[rowSums(is.na(data))>0,] 
+as.integer(rownames(null_rows)) # rownames outputs a string value for the row number but I wanted it as a integer typ so i converted it
+```
+
+## Question 2
+
+Find mean, sd, min, max for each of temperature and ozone level.
+
+### Answer:
+
+There are NA values in our dataset, so they need to be accounted for before we can find some summary statistics for Ozone and Temperature in our data.
+
+```{r}
+# For Ozone
+
+cat(" Ozone statistics: \n mean = ", round(mean(data$Ozone, na.rm = TRUE),2), "\n",
+"standard deviation = ", round(sd(data$Ozone, na.rm = TRUE),2), "\n", 
+"min = " , min(data$Wind, na.rm = TRUE), "\n",
+"max = ", max(data$Ozone, na.rm = TRUE),"\n")
+
+# For Temperature
+
+cat("\n Temperature statistics: \n mean = " , round(mean(data$Temp, na.rm = TRUE),2), "\n",
+"standrard deviation =" ,  round(sd(data$Temp, na.rm = TRUE),2), "\n",
+"min = ", min(data$Temp, na.rm = TRUE), "\n",
+"max = ", max(data$Temp, na.rm = TRUE))
+
+
+```
+
+## Question 3
+
+Fit a simple linear regression model to these data, i.e. find the $beta$ estimates, using the equation above, and matrix calculations in R
+
+### Answer:
+
+```{r}
+#loading of dataset
+car_data <- cars
+
+```
+
+```{r}
+# assignment of Y and design matrix(X)
+X <- cbind(1,car_data$dist) # made the design matrix X and added a column of 1's for the beta estimate for the constant in the linear regression equation
+Y <- car_data$speed
+```
+
+```{r}
+# manually sovling for bhat vector
+b_estimate <- solve(t(X)%*%X)%*%t(X)%*%Y
+round(b_estimate, 4)
+```
+
+## Question 4
+
+Check that you get the same estimates as when fitting the linear regression model using lm() in R.
+
+### Answer:
+
+```{r}
+model <- lm(Y~X, data = car_data)
+round(model$coefficients,4)
+```
+
+The beta estimates from the $lm()$ are the same as the ones from the manual calculation in question 3.

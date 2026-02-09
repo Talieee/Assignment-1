@@ -1,0 +1,11 @@
+project:
+  type: book
+
+book:
+  title: "Assignment 1"
+  author: "Natalie Chidikwindi"
+  chapters:
+    - index.qmd
+    - Day 1 Practical.qmd
+    - Day 3 Practical.qmd
+    - Day 4 Practical.qmd
