@@ -1,0 +1,13 @@
+project:
+  type: book
+  output-dir: docs
+book:
+  title: "Assignment 2"
+  author: "Natalie Chidikwindi"
+  chapters:
+    - index.qmd
+    - "Day 12 Practical.qmd"
+format:
+  html:
+    number-sections: false
+   

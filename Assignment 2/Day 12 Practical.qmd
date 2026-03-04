@@ -1,0 +1,236 @@
+---
+title: "Prac day 12"
+author: "Natalie Chidikwindi"
+format: html
+editor: visual
+---
+
+```{r}
+#| echo: true
+#| results: hide
+#| message: false
+#| warning: false
+#Loading of all libraries needed for the prac
+library(foreach)
+library(tidyverse)
+library(MASS)
+library(doParallel)
+library(knitr)
+library(kableExtra)
+```
+
+## Question 1
+
+Use a `foreach` loop to repeat 100 times:
+
+generate a random sample from an exponential distribution with mean 1
+
+calculate mean and variance
+
+row-bind your results (rbind) (results = mean and variance).
+
+### Answer
+
+```{r}
+#creates a column vector of all the means and variances for each 100 values sampled from an exponential distribution with mean 1 for each iteration
+result =  foreach(i = 1:100, .combine = "rbind") %do%{
+   exp_vec = rexp(100, 1)
+   mean = mean(exp_vec)
+   var = var(exp_vec)
+   c(round(mean,2),round(var,2)) 
+}
+# changes the column and row names
+colnames(result) <- c("Mean", "Variance")
+rownames(result) <- c(seq(1,100))
+
+#Put output into a table using kable
+kable(result, caption = "Table 1 : Means and Variances for 100 exponential distributions with mean 1") %>% 
+  kable_styling(bootstrap_options = "striped", "hover") %>% 
+  scroll_box(., height = "300px")
+```
+
+## Question 2
+
+Use the `doParallel` package and `foreach` to bootstrap the median for the galaxies data (in library MASS).
+
+### Answer
+
+```{r}
+set.seed(123)
+c1 <- makeCluster(2) # assigned 2 workes to the task 
+registerDoParallel(c1)
+# gives time output of how long it will take both workers to create a vector with the boostrapped values
+system.time({median_estimate <- median(galaxies)
+  boostrap <- foreach(i =  1:1000, .combine = 'rbind', .packages = 'MASS') %dopar%{
+    cases = sample(galaxies, size = 82, replace = T)
+    median = median(cases)
+    c(median)
+}}) 
+
+stopCluster(c1)
+colnames(boostrap) <- c("Boostrap Median")
+rownames(boostrap) <- c(seq(1,1000))
+boostrap %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = "striped", "hover", full_width = FALSE) %>% 
+  scroll_box(., height = "300px")
+
+```
+
+Try doing 1000 bootstrap samples at a time instead of managing single bootstrap samples.
+
+### Answer
+
+```{r}
+set.seed(123)
+c1 <- makeCluster(2) #assigned 2 workers
+registerDoParallel(c1)
+median_estimate <- median(galaxies)
+system.time({
+  boostrap2 <- foreach(i =  1:10, .combine = 'cbind', .packages = 'MASS') %dopar%{
+    median_short = replicate(100, median(sample(galaxies, size = 82, replace = T)))
+    c(median_short)
+    
+}})
+
+stopCluster(c1)
+
+colnames(boostrap2) <- c(seq(1,10))
+rownames(boostrap2) <- c(seq(1,100))
+boostrap2 %>% 
+  kable(caption = "Boostrap values of 1000 values for each iteration") %>% 
+  kable_styling(bootstrap_options = "striped", "hover", full_width = FALSE ) %>% 
+  scroll_box(., height = "300px")
+
+```
+
+the time doing 1000 at a time was faster than the time doing each bootstrap iteration.
+
+## Question 3
+
+Estimate coverage of a percentile bootstrap confidence interval for the following scenario: sample of size 50 from an exponential distribution with mean 1.
+
+### Answer
+
+The true mean estimate has been given which is 1
+
+```{r}
+mean_estimate <- 1
+```
+
+Coverage after bootstrapping
+
+```{r}
+set.seed(123)
+c2 <- makeCluster(5) # assigned 5 workers 
+registerDoParallel(c2)
+# calculated coverage for each 1000 boostraps
+coverage <- foreach(i = 1:1000, .combine = "rbind") %dopar%{
+  values = rexp(50,1)
+  cases = replicate(1000, mean(sample(values, size = 50 , replace = T)))
+  p_CI = quantile(cases, probs = c(0.025, 0.975))
+  c(1 >= p_CI[1] && 1 <= p_CI[2])
+}
+
+stopCluster(c2)
+
+mean(coverage)
+```
+
+## Question 4
+
+The package iterators provides several functions that can be used to create sequences for the `foreach` function. For example, the `irnorm` function creates an object that iterates over vectors of normally distributed random numbers. It is useful when you need to use random variables drawn from one distribution in an expression that is run in parallel.
+
+In this exercise, use the `foreach` and `irnorm` functions to iterate over 3 vectors, each containing 5 random variables. Find the largest value in each vector, and print those largest values.
+
+Before running the `foreach` function set the seed to 1234.
+
+### Answer
+
+```{r}
+set.seed(1234)
+# creates 3 vectors with 5 vales from a normal distribution and then 
+Large <- foreach(i = 1:3, .combine = 'rbind') %do% {
+  vec = irnorm(n =5, count = 3)
+  value = foreach(x = vec, .combine = c) %do% {
+    x                                           # extracts each value x in each iteration
+  }
+  largest = max(value)
+  c(round(largest, 2))             # Extracts the largest value from each iteration 
+}
+
+#changed row and column names
+colnames(Large) <- c("Largest Value")
+rownames(Large) <- c("Vector 1", "Vector 2", "Vector 3")
+
+#produces a table with the output
+Large %>% 
+  kable(caption = "Table 2: Largest values of 3 vectors with normally distributed values") %>% 
+  kable_styling(bootstrap_options = "striped", "hover", full_width = T)
+
+```
+
+## Question 5
+
+Compare run time between `parLapply`, `foreach` and `replicate` for the above problem.
+
+Using `foreach`
+
+```{r}
+set.seed(1234)
+#stores the time it takes to to Q4 using foreach
+time1<- system.time({
+  foreach(i = 1:3, .combine = c) %do% {
+    vec = irnorm(n =5, count = 3)
+    value = foreach(x = vec, .combine = c) %do% {
+      x
+    }
+    largest = max(value)
+    c(largest)
+}})
+```
+
+using `replicate`
+
+```{r}
+set.seed(1234)
+#stores the time it takes to use replicate method for Q4
+time2 <- system.time({
+largest = replicate(3, max(rnorm(5)))
+})
+```
+
+using `parLappy`
+
+```{r}
+# stores the time it takes to use the parLapply function for Q4
+set.seed(1234)
+time3 <- system.time({
+c3 <- makeCluster(2)
+rnorm_max <- function(i){
+  values = rnorm(5)
+  return(max(values))
+}
+
+largest <- parLapply(c3, as.list(1:3), rnorm_max)
+
+stopCluster(c3)
+})
+
+```
+
+Table to compare times
+
+```{r}
+times <- rbind(time1, time2, time3)
+times <- times [,-c(4,5)]
+# changes column and rownames
+colnames(times) <- c("user", "system", "elapsed")
+rownames(times)<- c("foreach", "replicate", "parLapply")
+
+times %>% 
+  kable(caption = "Table 3: Time usage for each method") %>% 
+  kable_styling(bootstrap_options = "striped", "hover") 
+```
+
+From Table 3 , the fastest method is using `replicate` and the method with the longest waiting time is `parLapply.`
