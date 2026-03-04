@@ -1,9 +1,0 @@
----
-title: "Overview Assignment 2"
-author: "Natalie Chidikwindi"
-editor: visual
----
-
-## Overview
-
-This Assignment consists of the Day 12 practical on Parallel Computing in R.
